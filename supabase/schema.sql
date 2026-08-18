@@ -305,6 +305,29 @@ create policy "usuário remove a própria reação" on public.reactions
   for delete using (auth.uid() = user_id);
 
 -- ---------------------------------------------------------------------------
+-- SUBSCRIPTIONS — assinatura do plano Pro (sincronizada via webhook da Stripe)
+-- ---------------------------------------------------------------------------
+create table if not exists public.subscriptions (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  stripe_customer_id text unique,
+  stripe_subscription_id text unique,
+  price_id text,
+  status text not null default 'none'
+    check (status in ('none','trialing','active','past_due','canceled','incomplete')),
+  current_period_end timestamptz,
+  updated_at timestamptz not null default now()
+);
+alter table public.subscriptions enable row level security;
+
+drop policy if exists "usuário vê a própria assinatura" on public.subscriptions;
+create policy "usuário vê a própria assinatura" on public.subscriptions
+  for select using (auth.uid() = user_id);
+
+-- Sem policy de insert/update/delete de propósito: só o webhook escreve aqui,
+-- usando a service role key (que ignora RLS). Ninguém consegue se auto-promover
+-- a "Pro" direto pelo banco com a chave anônima.
+
+-- ---------------------------------------------------------------------------
 -- índices úteis
 -- ---------------------------------------------------------------------------
 create index if not exists idx_projects_user on public.projects(user_id);

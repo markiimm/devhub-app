@@ -48,6 +48,36 @@ Crie uma conta pela tela de cadastro (`/signup`) e comece a usar. Por padrão o 
 pede confirmação por e-mail; se quiser pular isso durante o desenvolvimento, vá em
 **Authentication → Providers → Email** no painel do Supabase e desative "Confirm email".
 
+## 4. (Opcional) Ativar o plano Pro com Stripe
+
+O devHub funciona 100% de graça sem isso — só faça esse passo se quiser cobrar por um
+plano Pro. Sem essas variáveis, a página `/pricing` mostra "em breve" e nada quebra.
+
+1. Crie uma conta em [stripe.com](https://stripe.com) e deixe em **modo de teste**.
+2. **Product catalog** → crie um produto (ex: "devHub Pro") com um preço recorrente →
+   copie o **Price ID** (`price_...`).
+3. **Developers → API keys** → copie a **Publishable key** (`pk_test_...`) e a
+   **Secret key** (`sk_test_...`).
+4. No Supabase, **Project Settings → API**, copie a **service_role key** (só ela consegue
+   escrever na tabela `subscriptions`, ignorando RLS — é assim que o webhook confirma
+   pagamentos sem precisar de uma sessão de usuário logado).
+5. Preencha em `.env.local`:
+   ```
+   SUPABASE_SERVICE_ROLE_KEY=...
+   STRIPE_SECRET_KEY=sk_test_...
+   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
+   STRIPE_PRICE_ID_PRO=price_...
+   ```
+6. Pra testar o webhook localmente, instale a [Stripe CLI](https://stripe.com/docs/stripe-cli)
+   e rode `stripe listen --forward-to localhost:3000/api/webhooks/stripe` — ela imprime
+   um `whsec_...` que vai em `STRIPE_WEBHOOK_SECRET`. Em produção, esse valor vem de
+   **Developers → Webhooks → Add endpoint** apontando pro seu domínio real.
+7. Use o cartão de teste `4242 4242 4242 4242` (validade/CVC futuros quaisquer) pra
+   simular uma assinatura sem cobrar nada de verdade.
+
+Só depois de tudo validado em modo de teste: troque pelas chaves **live** da Stripe e
+complete os dados bancários no dashboard deles pra começar a receber de verdade.
+
 ## O que já funciona de ponta a ponta
 
 - **Autenticação real** — cadastro, login, logout, sessão via cookies (`@supabase/ssr`), rotas protegidas por middleware.
@@ -59,13 +89,19 @@ pede confirmação por e-mail; se quiser pular isso durante o desenvolvimento, v
 - **Perfil público compartilhável** (`/u/seu-handle`) — mostra bio, cargo, stack e os projetos marcados como "destaque público" no Project Lab. Editável em **Configurações** na sidebar.
 - **Heatmap de atividade** no dashboard, estilo GitHub, calculado a partir dos seus próprios registros (sem tabela extra).
 - **Paleta de comandos** (`Ctrl/Cmd+K`) pra navegar entre as áreas sem tirar a mão do teclado.
+- **Biblioteca pública** (`/library`) — snippets, erros e ideias marcados como públicos no Vaults.
+- **Seguir devs**, contador de seguidores e uma aba "Seguindo" no Dev Feed.
+- **Reações** (🔥) nos updates do Dev Feed.
+- **Heatmap com commits reais do GitHub** — some seu usuário do GitHub em Configurações.
+- **Gerador de README.md** por projeto, e cor de perfil personalizável.
+- **Plano Pro via Stripe** (`/pricing`) — selo PRO no perfil e destaque na Comunidade (veja o passo 4 acima).
 
-Todas as tabelas têm **Row Level Security**: cada pessoa só vê e edita os próprios dados (exceto projetos marcados como públicos, que ficam visíveis pra qualquer um no link do perfil).
+Todas as tabelas têm **Row Level Security**: cada pessoa só vê e edita os próprios dados (exceto conteúdo marcado como público, que fica visível pra qualquer um).
 
-> **Se seu banco já existia antes do perfil público**: abra o **SQL Editor** do Supabase e rode
-> `supabase/schema.sql` de novo (é seguro rodar mais de uma vez) — ele adiciona a coluna
-> `is_public` em `projects` e a policy de leitura pública. Sem isso, o toggle "mostrar no
-> perfil público" salva silenciosamente sem efeito.
+> **Se seu banco já existia antes de algum desses recursos**: abra o **SQL Editor** do
+> Supabase e rode `supabase/schema.sql` de novo (é seguro rodar mais de uma vez, sempre foi
+> feito pra isso). Sem isso, o recurso novo salva "no silêncio" sem efeito — nada quebra,
+> só não funciona ainda.
 
 ## Estrutura
 

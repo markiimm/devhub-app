@@ -21,6 +21,9 @@ export function PublicHeader() {
         <Link href="/library" className="btn btn-ghost">
           Biblioteca
         </Link>
+        <Link href="/pricing" className="btn btn-ghost">
+          Planos
+        </Link>
         <Link href="/login" className="btn btn-ghost">
           Entrar
         </Link>

@@ -9,6 +9,7 @@ import { Icon } from "@/components/ui/Icon";
 import { GithubBadgeInline } from "@/components/projects/GithubBadgeInline";
 import { fetchGithubRepo, type GithubRepoInfo } from "@/lib/github";
 import { toggleFollow } from "@/lib/actions/follow";
+import { getSubscription, isPro } from "@/lib/billing";
 
 export const dynamic = "force-dynamic";
 
@@ -59,9 +60,10 @@ export default async function PublicProfilePage({ params }: { params: { handle: 
 
   const avatarColor = profile.avatar_color || "#22d3ee";
 
-  const {
+  const [subscription, {
     data: { user: viewer },
-  } = await supabase.auth.getUser();
+  }] = await Promise.all([getSubscription(profile.id), supabase.auth.getUser()]);
+  const profileIsPro = isPro(subscription?.status);
 
   const [{ count: followerCount }, { count: followingCount }] = await Promise.all([
     supabase.from("follows").select("*", { count: "exact", head: true }).eq("following_id", profile.id),
@@ -95,7 +97,14 @@ export default async function PublicProfilePage({ params }: { params: { handle: 
                 {profile.name.slice(0, 2).toUpperCase()}
               </div>
               <div className="min-w-0">
-                <h1 className="text-xl font-semibold tracking-tight">{profile.name}</h1>
+                <h1 className="flex items-center gap-2 text-xl font-semibold tracking-tight">
+                  {profile.name}
+                  {profileIsPro && (
+                    <span className="rounded-full border border-status-warning/40 bg-status-warning/10 px-2 py-0.5 text-[10px] font-medium text-status-warning">
+                      PRO
+                    </span>
+                  )}
+                </h1>
                 <p className="font-mono text-sm text-ink-muted">@{profile.handle}</p>
                 {profile.title && <p className="mt-1.5 text-sm text-ink-secondary">{profile.title}</p>}
                 {profile.location && (

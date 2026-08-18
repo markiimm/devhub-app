@@ -4,6 +4,7 @@ import { AnimatedBackground } from "@/components/ui/AnimatedBackground";
 import { PublicHeader } from "@/components/marketing/PublicHeader";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Icon } from "@/components/ui/Icon";
+import { isPro } from "@/lib/billing";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Comunidade" };
@@ -31,6 +32,10 @@ export default async function ExplorePage({ searchParams }: { searchParams: { te
 
   const profilesById = new Map((profiles ?? []).map((p) => [p.id, p]));
 
+  const { data: subscriptions } =
+    userIds.length > 0 ? await supabase.from("subscriptions").select("user_id, status").in("user_id", userIds) : { data: [] };
+  const proUserIds = new Set((subscriptions ?? []).filter((s) => isPro(s.status)).map((s) => s.user_id));
+
   // preserva a ordem de "mais recentemente ativo" vinda de publicProjects
   const entries: { profile: NonNullable<ReturnType<typeof profilesById.get>>; projects: typeof filteredProjects }[] = [];
   const seen = new Set<string>();
@@ -41,6 +46,9 @@ export default async function ExplorePage({ searchParams }: { searchParams: { te
     seen.add(p.user_id);
     entries.push({ profile, projects: filteredProjects.filter((pp) => pp.user_id === p.user_id) });
   }
+
+  // destaque Pro: assinantes aparecem primeiro, mantendo a ordem de recência dentro de cada grupo
+  entries.sort((a, b) => Number(proUserIds.has(b.profile.id)) - Number(proUserIds.has(a.profile.id)));
 
   return (
     <div className="relative min-h-screen overflow-hidden">
@@ -98,7 +106,14 @@ export default async function ExplorePage({ searchParams }: { searchParams: { te
                       {entry.profile.name.slice(0, 2).toUpperCase()}
                     </div>
                     <div className="min-w-0">
-                      <div className="truncate text-sm font-semibold">{entry.profile.name}</div>
+                      <div className="flex items-center gap-1.5 truncate text-sm font-semibold">
+                        {entry.profile.name}
+                        {proUserIds.has(entry.profile.id) && (
+                          <span className="shrink-0 rounded-full border border-status-warning/40 bg-status-warning/10 px-1.5 py-0.5 text-[9px] text-status-warning">
+                            PRO
+                          </span>
+                        )}
+                      </div>
                       <div className="truncate font-mono text-xs text-ink-muted">@{entry.profile.handle}</div>
                     </div>
                   </div>

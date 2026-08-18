@@ -2,10 +2,16 @@ import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { supabaseUrl, supabaseAnonKey, isSupabaseConfigured } from "./lib/supabase/env";
 
-const PUBLIC_PATHS = ["/login", "/signup", "/auth/callback", "/u/", "/explore", "/feed", "/library"];
+const PUBLIC_PATHS = ["/login", "/signup", "/auth/callback", "/u/", "/explore", "/feed", "/library", "/pricing"];
 
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request: { headers: request.headers } });
+
+  // Rotas de API (ex: webhook da Stripe) fazem sua própria autenticação/verificação —
+  // não são navegação de usuário, então nunca devem ser redirecionadas pro /login.
+  if (request.nextUrl.pathname.startsWith("/api/")) {
+    return response;
+  }
 
   // Sem Supabase configurado ainda: deixa tudo passar (a UI mostra a tela de setup).
   if (!isSupabaseConfigured) {

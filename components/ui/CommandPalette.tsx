@@ -39,6 +39,7 @@ export function CommandPalette() {
       { id: "explore", label: "Comunidade", hint: "devs em destaque", icon: "globe", color: "text-accent", action: (r) => r.push("/explore") },
       { id: "feed", label: "Dev Feed", hint: "build in public de todo mundo", icon: "zap", color: "text-section-projects", action: (r) => r.push("/feed") },
       { id: "library", label: "Biblioteca", hint: "snippets, erros e ideias públicas", icon: "box", color: "text-section-vaults", action: (r) => r.push("/library") },
+      { id: "pricing", label: "Planos", hint: "free vs pro", icon: "star", color: "text-status-warning", action: (r) => r.push("/pricing") },
       {
         id: "logout",
         label: "Sair",

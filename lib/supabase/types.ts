@@ -139,6 +139,19 @@ export interface Database {
         Insert: Partial<Database["public"]["Tables"]["reactions"]["Row"]> & { update_id: string; user_id: string };
         Update: Partial<Database["public"]["Tables"]["reactions"]["Row"]>;
       };
+      subscriptions: {
+        Row: {
+          user_id: string;
+          stripe_customer_id: string | null;
+          stripe_subscription_id: string | null;
+          price_id: string | null;
+          status: "none" | "trialing" | "active" | "past_due" | "canceled" | "incomplete";
+          current_period_end: string | null;
+          updated_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["subscriptions"]["Row"]> & { user_id: string };
+        Update: Partial<Database["public"]["Tables"]["subscriptions"]["Row"]>;
+      };
       tools: {
         Row: {
           id: string;

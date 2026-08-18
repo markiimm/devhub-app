@@ -4,6 +4,9 @@ import { Topbar } from "@/components/layout/Topbar";
 import { Icon } from "@/components/ui/Icon";
 import { CopyProfileLink } from "@/components/settings/CopyProfileLink";
 import { updateProfile } from "@/lib/actions/profile";
+import { createCheckoutSession, createPortalSession } from "@/lib/actions/billing";
+import { getSubscription, isPro } from "@/lib/billing";
+import { isStripeConfigured } from "@/lib/stripe/env";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Configurações" };
@@ -14,6 +17,8 @@ export default async function SettingsPage() {
     data: { user },
   } = await supabase.auth.getUser();
   const { data: profile } = await supabase.from("profiles").select("*").eq("id", user!.id).single();
+  const subscription = await getSubscription(user!.id);
+  const userIsPro = isPro(subscription?.status);
 
   return (
     <div>
@@ -22,8 +27,41 @@ export default async function SettingsPage() {
         subtitle="Seu perfil — o que aparece publicamente no seu link compartilhável."
       />
       <div className="space-y-5 p-8 sm:p-10">
+        <div className="card card-hover flex animate-fade-up items-center justify-between">
+          <div>
+            <div className="flex items-center gap-2 text-sm font-medium">
+              Plano {userIsPro ? "Pro" : "Free"}
+              {userIsPro && (
+                <span className="rounded-full border border-status-warning/40 bg-status-warning/10 px-2 py-0.5 text-[10px] text-status-warning">
+                  PRO
+                </span>
+              )}
+            </div>
+            <div className="mt-1 font-mono text-xs text-ink-muted">
+              {userIsPro
+                ? subscription?.current_period_end
+                  ? `renova em ${new Date(subscription.current_period_end).toLocaleDateString("pt-BR")}`
+                  : "assinatura ativa"
+                : "sem custo — sempre pode assinar o Pro depois"}
+            </div>
+          </div>
+          {userIsPro ? (
+            <form action={createPortalSession}>
+              <button className="btn btn-ghost font-mono">gerenciar assinatura →</button>
+            </form>
+          ) : isStripeConfigured ? (
+            <form action={createCheckoutSession}>
+              <button className="btn btn-primary font-mono">$ assinar Pro →</button>
+            </form>
+          ) : (
+            <Link href="/pricing" className="btn btn-ghost font-mono">
+              ver planos →
+            </Link>
+          )}
+        </div>
+
         {profile?.handle && (
-          <div className="card card-hover flex animate-fade-up items-center justify-between">
+          <div className="card card-hover flex animate-fade-up items-center justify-between" style={{ animationDelay: "60ms" }}>
             <div>
               <div className="text-sm font-medium">Seu perfil público</div>
               <div className="mt-1 font-mono text-xs text-ink-muted">/u/{profile.handle}</div>
@@ -38,7 +76,7 @@ export default async function SettingsPage() {
           </div>
         )}
 
-        <form action={updateProfile} className="card animate-fade-up space-y-4" style={{ animationDelay: "60ms" }}>
+        <form action={updateProfile} className="card animate-fade-up space-y-4" style={{ animationDelay: "120ms" }}>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="label">Nome</label>
