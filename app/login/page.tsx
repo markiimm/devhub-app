@@ -4,6 +4,8 @@ import { SetupScreen } from "@/components/SetupScreen";
 import { AuthShell } from "@/components/auth/AuthShell";
 import { LoginForm } from "@/components/auth/LoginForm";
 
+export const metadata = { title: "Entrar" };
+
 export default function LoginPage() {
   if (!isSupabaseConfigured) return <SetupScreen />;
 

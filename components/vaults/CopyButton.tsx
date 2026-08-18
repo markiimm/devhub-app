@@ -19,7 +19,7 @@ export function CopyButton({ text }: { text: string }) {
   return (
     <button
       onClick={handleCopy}
-      className="absolute right-2 top-2 flex items-center gap-1.5 rounded-sm border border-border-strong bg-surface-3 px-2 py-1 text-xs text-ink-secondary hover:text-ink-primary"
+      className="absolute right-2 top-2 flex items-center gap-1.5 rounded-sm border border-border-strong bg-surface-3 px-2 py-1 font-mono text-xs text-ink-secondary transition-colors hover:border-accent/50 hover:text-accent"
     >
       <Icon name={copied ? "check" : "copy"} size={12} />
       {copied ? "Copiado" : "Copiar"}

@@ -57,6 +57,7 @@ export async function updateProjectMeta(formData: FormData) {
       progress: Number(formData.get("progress") ?? 0),
       tech: parseList(formData.get("tech")),
       github: String(formData.get("github") ?? ""),
+      is_public: formData.get("is_public") === "on",
       dna: {
         arquitetura: String(formData.get("dna_arquitetura") ?? ""),
         banco: String(formData.get("dna_banco") ?? ""),

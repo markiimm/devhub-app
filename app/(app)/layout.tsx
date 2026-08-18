@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { Sidebar } from "@/components/layout/Sidebar";
+import { AnimatedBackground } from "@/components/ui/AnimatedBackground";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const supabase = createClient();
@@ -16,6 +17,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="flex min-h-screen">
+      <AnimatedBackground color="#22d3ee" />
       <Sidebar name={profile?.name ?? "Você"} handle={profile?.handle ?? "dev"} />
       <main className="flex-1">{children}</main>
     </div>

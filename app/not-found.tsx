@@ -1,21 +1,12 @@
+import Link from "next/link";
 import { AnimatedBackground } from "@/components/ui/AnimatedBackground";
 
-export function AuthShell({
-  title,
-  subtitle,
-  children,
-  footer,
-}: {
-  title: string;
-  subtitle: string;
-  children: React.ReactNode;
-  footer: React.ReactNode;
-}) {
+export default function NotFound() {
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden px-6 py-12">
       <AnimatedBackground color="#22d3ee" />
 
-      <div className="w-full max-w-md animate-fade-up">
+      <div className="w-full max-w-md animate-fade-up text-center">
         <div className="mb-6 flex items-center justify-center gap-2.5">
           <div className="flex h-9 w-9 items-center justify-center rounded-md border border-accent/50 bg-accent/10 font-mono text-sm font-bold text-accent shadow-glow">
             DH
@@ -30,21 +21,22 @@ export function AuthShell({
             <span className="h-2.5 w-2.5 rounded-full bg-status-critical/70" />
             <span className="h-2.5 w-2.5 rounded-full bg-status-warning/70" />
             <span className="h-2.5 w-2.5 rounded-full bg-status-good/70" />
-            <span className="ml-3 truncate font-mono text-xs text-ink-muted">
-              zsh — ~/devhub/{title.toLowerCase() === "entrar" ? "login" : "signup"}
-            </span>
+            <span className="ml-3 truncate font-mono text-xs text-ink-muted">zsh — ~/devhub</span>
           </div>
-          <div className="p-6 sm:p-7">
-            <p className="font-mono text-xs text-ink-muted">
-              <span className="text-accent">$</span> {subtitle}
-              <span className="ml-0.5 inline-block h-3 w-1.5 translate-y-0.5 animate-blink bg-accent align-middle" />
+          <div className="p-8 text-left">
+            <p className="font-mono text-xs text-status-critical">$ cd {"{rota-desconhecida}"}</p>
+            <p className="mt-1.5 font-mono text-xs text-ink-muted">
+              zsh: no such file or directory
             </p>
-            <h1 className="mt-2 text-xl font-semibold tracking-tight">{title}</h1>
-            <div className="mt-6">{children}</div>
+            <h1 className="mt-4 text-2xl font-semibold tracking-tight">404 — rota não encontrada</h1>
+            <p className="mt-1.5 text-sm text-ink-secondary">
+              Essa página não existe (ou já foi removida). Bora voltar pro dashboard.
+            </p>
+            <Link href="/dashboard" className="btn btn-primary mt-6 font-mono">
+              $ cd ~/dashboard →
+            </Link>
           </div>
         </div>
-
-        <p className="mt-6 text-center text-sm text-ink-secondary">{footer}</p>
       </div>
     </div>
   );

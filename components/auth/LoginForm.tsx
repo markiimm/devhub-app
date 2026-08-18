@@ -29,32 +29,32 @@ export function LoginForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className="label" htmlFor="email">E-mail</label>
+        <label className="label" htmlFor="email">$ email</label>
         <input
           id="email"
           type="email"
           required
-          className="input"
+          className="input font-mono"
           placeholder="voce@exemplo.com"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
       </div>
       <div>
-        <label className="label" htmlFor="password">Senha</label>
+        <label className="label" htmlFor="password">$ password</label>
         <input
           id="password"
           type="password"
           required
-          className="input"
+          className="input font-mono"
           placeholder="••••••••"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
       </div>
-      {error && <p className="text-sm text-status-critical">{error}</p>}
-      <button type="submit" disabled={loading} className="btn btn-primary w-full justify-center">
-        {loading ? "Entrando..." : "Entrar"}
+      {error && <p className="font-mono text-sm text-status-critical">✗ {error}</p>}
+      <button type="submit" disabled={loading} className="btn btn-primary w-full justify-center font-mono">
+        {loading ? "entrando..." : "$ entrar →"}
       </button>
     </form>
   );

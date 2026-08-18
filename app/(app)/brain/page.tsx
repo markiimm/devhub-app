@@ -6,6 +6,7 @@ import { Icon } from "@/components/ui/Icon";
 import { saveNote, deleteNote } from "@/lib/actions/notes";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Dev Brain" };
 
 export default async function BrainPage({ searchParams }: { searchParams: { id?: string } }) {
   const supabase = createClient();
@@ -29,6 +30,7 @@ export default async function BrainPage({ searchParams }: { searchParams: { id?:
       <Topbar
         title="Dev Brain"
         subtitle="Guarde conhecimentos, comandos, links e conceitos técnicos — organizados por tags."
+        accent="brain"
         actions={
           <Link href="/brain?id=new" className="btn btn-primary">
             <Icon name="plus" size={14} />
@@ -36,16 +38,19 @@ export default async function BrainPage({ searchParams }: { searchParams: { id?:
           </Link>
         }
       />
-      <div className="grid grid-cols-[280px_1fr] gap-6 p-8">
-        <div className="card !p-2">
+      <div className="grid grid-cols-[280px_1fr] gap-6 p-8 sm:p-10">
+        <div className="card animate-fade-up !p-2">
           {notes && notes.length > 0 ? (
-            <div className="flex flex-col">
-              {notes.map((n) => (
+            <div className="flex flex-col gap-0.5">
+              {notes.map((n, i) => (
                 <Link
                   key={n.id}
                   href={`/brain?id=${n.id}`}
-                  className={`rounded-sm px-3 py-2.5 text-sm transition-colors ${
-                    n.id === selectedId ? "bg-surface-3" : "hover:bg-surface-2"
+                  style={{ animationDelay: `${i * 40}ms` }}
+                  className={`animate-fade-up rounded-sm border px-3 py-2.5 text-sm transition-all ${
+                    n.id === selectedId
+                      ? "border-section-brain/40 bg-section-brain/10"
+                      : "border-transparent hover:border-border hover:bg-surface-3"
                   }`}
                 >
                   <div className="truncate font-medium">{n.title}</div>
@@ -59,7 +64,7 @@ export default async function BrainPage({ searchParams }: { searchParams: { id?:
         </div>
 
         {isNew || selected ? (
-          <form action={saveNote} className="card space-y-4">
+          <form action={saveNote} className="card animate-fade-up space-y-4" style={{ animationDelay: "80ms" }}>
             <input type="hidden" name="id" defaultValue={selected?.id ?? ""} />
             <div className="flex items-center justify-between gap-3">
               <input

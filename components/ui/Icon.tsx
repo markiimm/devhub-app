@@ -22,6 +22,9 @@ const PATHS: Record<string, string> = {
   bell: '<path d="M6 10a6 6 0 0 1 12 0c0 4.6 1.8 5.8 1.8 5.8H4.2S6 14.6 6 10z"/><path d="M10 19.8a2 2 0 0 0 4 0"/>',
   zap: '<polygon points="13,2 4,14 11,14 10,22 20,9 13,9"/>',
   fileText: '<path d="M6 3h8l4 4v14H6V3z"/><line x1="9" y1="12.5" x2="15" y2="12.5"/><line x1="9" y1="16" x2="15" y2="16"/>',
+  star: '<polygon points="12,3 14.9,9.6 22,10.5 16.8,15.2 18.2,22 12,18.4 5.8,22 7.2,15.2 2,10.5 9.1,9.6"/>',
+  gitFork: '<circle cx="6" cy="5" r="2.3"/><circle cx="18" cy="5" r="2.3"/><circle cx="12" cy="19" r="2.3"/><path d="M6 7.3V11a3 3 0 0 0 3 3h1.5M18 7.3V11a3 3 0 0 0-3 3h-1.5M12 14v2.7"/>',
+  globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/>',
 };
 
 export function Icon({

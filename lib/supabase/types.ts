@@ -41,6 +41,7 @@ export interface Database {
           apis: string[];
           github: string | null;
           dna: ProjectDna;
+          is_public: boolean;
           created_at: string;
           updated_at: string;
         };

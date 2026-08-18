@@ -1,11 +1,13 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { Topbar } from "@/components/layout/Topbar";
-import { StatusBadge } from "@/components/ui/Badge";
+import { Badge, StatusBadge } from "@/components/ui/Badge";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Icon } from "@/components/ui/Icon";
+import { GithubCard } from "@/components/projects/GithubCard";
 import {
   updateProjectMeta,
   deleteProject,
@@ -29,6 +31,12 @@ const DNA_LABELS: Record<string, string> = {
   ferramentas: "Ferramentas",
 };
 
+export async function generateMetadata({ params }: { params: { id: string } }) {
+  const supabase = createClient();
+  const { data: project } = await supabase.from("projects").select("name").eq("id", params.id).single();
+  return { title: project?.name ?? "Projeto" };
+}
+
 export default async function ProjectDetailPage({ params }: { params: { id: string } }) {
   const supabase = createClient();
   const { data: project } = await supabase.from("projects").select("*").eq("id", params.id).single();
@@ -47,6 +55,7 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
       <Topbar
         title={project.name}
         subtitle={project.tagline}
+        accent="projects"
         actions={
           project.github ? (
             <a href={`https://${project.github}`} target="_blank" className="btn btn-ghost">
@@ -56,11 +65,14 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
           ) : undefined
         }
       />
-      <div className="space-y-4 p-8">
-        <div className="card">
+      <div className="space-y-5 p-8 sm:p-10">
+        <div className="card card-hover animate-fade-up">
           <div className="flex items-center justify-between">
-            <StatusBadge status={project.status} />
-            <span className="text-xs text-ink-muted">{project.progress}% completo</span>
+            <div className="flex items-center gap-2">
+              <StatusBadge status={project.status} />
+              {project.is_public && <Badge variant="violet">✦ destaque público</Badge>}
+            </div>
+            <span className="font-mono text-xs text-section-projects">{project.progress}% completo</span>
           </div>
           <ProgressBar value={project.progress} className="mt-2" />
           {project.tech?.length > 0 && (
@@ -72,8 +84,14 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
           )}
         </div>
 
-        <details className="card">
-          <summary className="cursor-pointer text-sm font-medium">Editar projeto</summary>
+        {project.github && (
+          <Suspense fallback={<div className="card h-[86px] animate-pulse bg-surface-3" />}>
+            <GithubCard repo={project.github} />
+          </Suspense>
+        )}
+
+        <details className="card card-hover animate-fade-up" style={{ animationDelay: "60ms" }}>
+          <summary className="cursor-pointer font-mono text-sm font-medium text-section-projects">$ editar projeto</summary>
           <form action={updateProjectMeta} className="mt-4 space-y-3">
             <input type="hidden" name="id" value={project.id} />
             <div className="grid grid-cols-2 gap-3">
@@ -101,18 +119,32 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
                 />
               ))}
             </div>
+            <label className="flex items-center gap-2.5 rounded-sm border border-border bg-surface-3 px-3 py-2.5 text-sm text-ink-secondary">
+              <input
+                type="checkbox"
+                name="is_public"
+                defaultChecked={project.is_public}
+                className="h-4 w-4 accent-accent"
+              />
+              <span>
+                Mostrar no meu <span className="font-mono text-ink-primary">perfil público</span> (
+                <span className="text-section-projects">destaque</span>)
+              </span>
+            </label>
             <div className="flex justify-between">
-              <form action={deleteProject}>
-                <input type="hidden" name="id" value={project.id} />
-                <button className="btn btn-ghost text-status-critical hover:text-status-critical">Excluir projeto</button>
-              </form>
+              <button
+                formAction={deleteProject}
+                className="btn btn-ghost text-status-critical hover:text-status-critical"
+              >
+                Excluir projeto
+              </button>
               <button className="btn btn-primary">Salvar alterações</button>
             </div>
           </form>
         </details>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div className="card">
+        <div className="grid grid-cols-2 gap-5">
+          <div className="card card-hover animate-fade-up" style={{ animationDelay: "120ms" }}>
             <h2 className="mb-3 text-sm font-semibold">Tarefas</h2>
             <div className="space-y-1">
               {tasks?.map((t) => (
@@ -146,7 +178,7 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
             </form>
           </div>
 
-          <div className="card">
+          <div className="card card-hover animate-fade-up" style={{ animationDelay: "180ms" }}>
             <h2 className="mb-3 text-sm font-semibold">Problemas encontrados</h2>
             <div className="space-y-1">
               {problems?.map((p) => (
@@ -183,7 +215,7 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
           </div>
         </div>
 
-        <div className="card">
+        <div className="card card-hover animate-fade-up" style={{ animationDelay: "240ms" }}>
           <h2 className="mb-3 text-sm font-semibold">Build in Public — atualizações</h2>
           <form action={addUpdate} className="mb-3 flex gap-2">
             <input type="hidden" name="project_id" value={project.id} />
@@ -195,7 +227,7 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
           <div className="space-y-3">
             {updates?.map((u) => (
               <div key={u.id} className="flex items-start gap-3 border-t border-border pt-3 first:border-0 first:pt-0">
-                <span className="w-20 shrink-0 text-xs text-ink-muted">
+                <span className="w-20 shrink-0 font-mono text-xs text-ink-muted">
                   {new Date(u.created_at).toLocaleDateString("pt-BR")}
                 </span>
                 <span className="flex-1 text-sm text-ink-secondary">{u.body}</span>
@@ -212,7 +244,10 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
           </div>
         </div>
 
-        <Link href="/projects" className="inline-flex items-center gap-1.5 text-sm text-ink-muted hover:text-ink-primary">
+        <Link
+          href="/projects"
+          className="inline-flex items-center gap-1.5 text-sm text-ink-muted transition-colors hover:text-section-projects"
+        >
           ← Voltar para todos os projetos
         </Link>
       </div>

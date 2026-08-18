@@ -55,8 +55,17 @@ pede confirmação por e-mail; se quiser pular isso durante o desenvolvimento, v
 - **Dev Brain** — criar, editar, excluir notas com categoria e tags.
 - **Vaults** — Code Vault (com botão de copiar), Error Vault, Idea Vault e Tool Vault, cada um com criação e exclusão.
 - **Project Lab** — criar projetos, editar status/progresso/tecnologias/"Project DNA", checklist de tarefas, problemas encontrados (com ciclo de status) e atualizações "build in public".
+- **Landing page pública** (`/`) — só aparece pra quem não está logado; quem já tem sessão é redirecionado direto pro dashboard.
+- **Perfil público compartilhável** (`/u/seu-handle`) — mostra bio, cargo, stack e os projetos marcados como "destaque público" no Project Lab. Editável em **Configurações** na sidebar.
+- **Heatmap de atividade** no dashboard, estilo GitHub, calculado a partir dos seus próprios registros (sem tabela extra).
+- **Paleta de comandos** (`Ctrl/Cmd+K`) pra navegar entre as áreas sem tirar a mão do teclado.
 
-Todas as tabelas têm **Row Level Security**: cada pessoa só vê e edita os próprios dados.
+Todas as tabelas têm **Row Level Security**: cada pessoa só vê e edita os próprios dados (exceto projetos marcados como públicos, que ficam visíveis pra qualquer um no link do perfil).
+
+> **Se seu banco já existia antes do perfil público**: abra o **SQL Editor** do Supabase e rode
+> `supabase/schema.sql` de novo (é seguro rodar mais de uma vez) — ele adiciona a coluna
+> `is_public` em `projects` e a policy de leitura pública. Sem isso, o toggle "mostrar no
+> perfil público" salva silenciosamente sem efeito.
 
 ## Estrutura
 

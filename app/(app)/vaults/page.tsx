@@ -17,6 +17,7 @@ import {
 } from "@/lib/actions/vaults";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Vaults" };
 
 const SEVERITY_LABELS: Record<string, string> = {
   good: "Resolvido",
@@ -52,15 +53,21 @@ export default async function VaultsPage({ searchParams }: { searchParams: { tab
 
   return (
     <div>
-      <Topbar title="Vaults" subtitle="Suas bibliotecas pessoais: código, erros resolvidos, ideias e ferramentas." />
-      <div className="p-8">
-        <div className="mb-6 flex gap-1 border-b border-border">
+      <Topbar
+        title="Vaults"
+        subtitle="Suas bibliotecas pessoais: código, erros resolvidos, ideias e ferramentas."
+        accent="vaults"
+      />
+      <div className="p-8 sm:p-10">
+        <div className="mb-7 flex gap-1 border-b-2 border-border">
           {TABS.map((t) => (
             <Link
               key={t.id}
               href={`/vaults?tab=${t.id}`}
-              className={`border-b-2 px-3 pb-2.5 text-sm font-medium ${
-                tab === t.id ? "border-accent text-ink-primary" : "border-transparent text-ink-muted hover:text-ink-primary"
+              className={`border-b-2 px-3 pb-2.5 font-mono text-sm font-medium transition-colors ${
+                tab === t.id
+                  ? "border-section-vaults text-ink-primary"
+                  : "border-transparent text-ink-muted hover:text-ink-primary"
               }`}
             >
               {t.label}
@@ -87,8 +94,8 @@ async function CodeVaultTab({ userId }: { userId: string }) {
 
   return (
     <div className="space-y-4">
-      <details className="card">
-        <summary className="cursor-pointer text-sm font-medium">+ Novo snippet</summary>
+      <details className="card card-hover">
+        <summary className="cursor-pointer font-mono text-sm font-medium text-section-vaults marker:text-section-vaults">+ Novo snippet</summary>
         <form action={createSnippet} className="mt-4 space-y-3">
           <div className="grid grid-cols-[1fr_160px] gap-3">
             <input name="title" required placeholder="Título" className="input" />
@@ -102,9 +109,13 @@ async function CodeVaultTab({ userId }: { userId: string }) {
       </details>
 
       {snippets && snippets.length > 0 ? (
-        <div className="grid grid-cols-2 gap-4">
-          {snippets.map((s) => (
-            <div key={s.id} className="card">
+        <div className="grid grid-cols-2 gap-5">
+          {snippets.map((s, i) => (
+            <div
+              key={s.id}
+              className="card card-hover animate-fade-up hover:border-section-vaults/40"
+              style={{ animationDelay: `${i * 60}ms` }}
+            >
               <div className="flex items-center justify-between gap-2">
                 <div className="font-medium">{s.title}</div>
                 <div className="flex items-center gap-2">
@@ -113,7 +124,7 @@ async function CodeVaultTab({ userId }: { userId: string }) {
                 </div>
               </div>
               {s.description && <p className="mt-1 text-sm text-ink-muted">{s.description}</p>}
-              <div className="relative mt-3 rounded-sm border border-border bg-bg p-3 pt-9">
+              <div className="relative mt-3 rounded-sm border-2 border-border bg-bg p-3 pt-9">
                 <CopyButton text={s.code} />
                 <pre className="overflow-x-auto font-mono text-xs leading-relaxed text-ink-secondary">{s.code}</pre>
               </div>
@@ -144,8 +155,8 @@ async function ErrorVaultTab({ userId }: { userId: string }) {
 
   return (
     <div className="space-y-4">
-      <details className="card">
-        <summary className="cursor-pointer text-sm font-medium">+ Novo erro</summary>
+      <details className="card card-hover">
+        <summary className="cursor-pointer font-mono text-sm font-medium text-section-vaults marker:text-section-vaults">+ Novo erro</summary>
         <form action={createErrorEntry} className="mt-4 space-y-3">
           <div className="grid grid-cols-[1fr_140px_140px] gap-3">
             <input name="title" required placeholder="Título do erro" className="input" />
@@ -164,9 +175,13 @@ async function ErrorVaultTab({ userId }: { userId: string }) {
       </details>
 
       {errors && errors.length > 0 ? (
-        <div className="grid grid-cols-2 gap-4">
-          {errors.map((e) => (
-            <div key={e.id} className="card">
+        <div className="grid grid-cols-2 gap-5">
+          {errors.map((e, i) => (
+            <div
+              key={e.id}
+              className="card card-hover animate-fade-up hover:border-section-vaults/40"
+              style={{ animationDelay: `${i * 60}ms` }}
+            >
               <div className="flex items-center justify-between gap-2">
                 <Badge variant={e.severity}>
                   {SEVERITY_LABELS[e.severity] ?? e.severity}
@@ -209,8 +224,8 @@ async function IdeaVaultTab({ userId }: { userId: string }) {
 
   return (
     <div className="space-y-4">
-      <details className="card">
-        <summary className="cursor-pointer text-sm font-medium">+ Nova ideia</summary>
+      <details className="card card-hover">
+        <summary className="cursor-pointer font-mono text-sm font-medium text-section-vaults marker:text-section-vaults">+ Nova ideia</summary>
         <form action={createIdea} className="mt-4 space-y-3">
           <div className="grid grid-cols-[1fr_160px] gap-3">
             <input name="title" required placeholder="Título da ideia" className="input" />
@@ -229,30 +244,34 @@ async function IdeaVaultTab({ userId }: { userId: string }) {
       </details>
 
       {ideas && ideas.length > 0 ? (
-        <div className="grid grid-cols-2 gap-4">
-          {ideas.map((i) => (
-            <div key={i.id} className="card">
+        <div className="grid grid-cols-2 gap-5">
+          {ideas.map((idea, i) => (
+            <div
+              key={idea.id}
+              className="card card-hover animate-fade-up hover:border-section-vaults/40"
+              style={{ animationDelay: `${i * 60}ms` }}
+            >
               <div className="flex items-center justify-between">
-                <Badge variant="violet">{i.category}</Badge>
-                <DeleteBtn action={deleteIdea} id={i.id} />
+                <Badge variant="violet">{idea.category}</Badge>
+                <DeleteBtn action={deleteIdea} id={idea.id} />
               </div>
-              <div className="mt-2 font-medium">{i.title}</div>
-              {i.description && <p className="mt-1 text-sm text-ink-muted">{i.description}</p>}
-              {i.problem && (
+              <div className="mt-2 font-medium">{idea.title}</div>
+              {idea.description && <p className="mt-1 text-sm text-ink-muted">{idea.description}</p>}
+              {idea.problem && (
                 <p className="mt-2 text-sm text-ink-secondary">
                   <span className="text-ink-muted">Problema: </span>
-                  {i.problem}
+                  {idea.problem}
                 </p>
               )}
-              {i.solution && (
+              {idea.solution && (
                 <p className="mt-1.5 text-sm text-ink-secondary">
                   <span className="text-ink-muted">Solução: </span>
-                  {i.solution}
+                  {idea.solution}
                 </p>
               )}
-              {i.tech?.length > 0 && (
+              {idea.tech?.length > 0 && (
                 <div className="mt-3 flex flex-wrap gap-1.5">
-                  {i.tech.map((t: string) => (
+                  {idea.tech.map((t: string) => (
                     <span key={t} className="tag">{t}</span>
                   ))}
                 </div>
@@ -277,8 +296,8 @@ async function ToolVaultTab({ userId }: { userId: string }) {
 
   return (
     <div className="space-y-4">
-      <details className="card">
-        <summary className="cursor-pointer text-sm font-medium">+ Nova ferramenta</summary>
+      <details className="card card-hover">
+        <summary className="cursor-pointer font-mono text-sm font-medium text-section-vaults marker:text-section-vaults">+ Nova ferramenta</summary>
         <form action={createTool} className="mt-4 space-y-3">
           <div className="grid grid-cols-3 gap-3">
             <input name="name" required placeholder="Nome" className="input" />
@@ -294,9 +313,13 @@ async function ToolVaultTab({ userId }: { userId: string }) {
       </details>
 
       {tools && tools.length > 0 ? (
-        <div className="grid grid-cols-3 gap-4">
-          {tools.map((t) => (
-            <div key={t.id} className="card">
+        <div className="grid grid-cols-3 gap-5">
+          {tools.map((t, i) => (
+            <div
+              key={t.id}
+              className="card card-hover animate-fade-up hover:border-section-vaults/40"
+              style={{ animationDelay: `${i * 60}ms` }}
+            >
               <div className="flex items-center justify-between">
                 <div className="font-medium">{t.name}</div>
                 <DeleteBtn action={deleteTool} id={t.id} />

@@ -8,6 +8,7 @@ import { Icon } from "@/components/ui/Icon";
 import { createProject } from "@/lib/actions/projects";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Project Lab" };
 
 export default async function ProjectsPage() {
   const supabase = createClient();
@@ -16,16 +17,20 @@ export default async function ProjectsPage() {
   } = await supabase.auth.getUser();
   const { data: projects } = await supabase
     .from("projects")
-    .select("id, name, tagline, status, progress, tech")
+    .select("id, name, tagline, status, progress, tech, is_public")
     .eq("user_id", user!.id)
     .order("updated_at", { ascending: false });
 
   return (
     <div>
-      <Topbar title="Project Lab" subtitle="Organize projetos com tarefas, documentação, tecnologias e progresso." />
-      <div className="p-8 space-y-4">
-        <details className="card">
-          <summary className="cursor-pointer text-sm font-medium">
+      <Topbar
+        title="Project Lab"
+        subtitle="Organize projetos com tarefas, documentação, tecnologias e progresso."
+        accent="projects"
+      />
+      <div className="p-8 sm:p-10 space-y-5">
+        <details className="card card-hover">
+          <summary className="cursor-pointer font-mono text-sm font-medium text-section-projects">
             <Icon name="plus" size={13} className="mr-1 inline" />
             Novo projeto
           </summary>
@@ -41,12 +46,24 @@ export default async function ProjectsPage() {
         </details>
 
         {projects && projects.length > 0 ? (
-          <div className="grid grid-cols-2 gap-4">
-            {projects.map((p) => (
-              <Link key={p.id} href={`/projects/${p.id}`} className="card block transition-colors hover:bg-surface-3">
+          <div className="grid grid-cols-2 gap-5">
+            {projects.map((p, i) => (
+              <Link
+                key={p.id}
+                href={`/projects/${p.id}`}
+                style={{ animationDelay: `${i * 60}ms` }}
+                className="card card-hover animate-fade-up block hover:border-section-projects/40"
+              >
                 <div className="flex items-center justify-between">
-                  <StatusBadge status={p.status} />
-                  <span className="text-xs text-ink-muted">{p.progress}%</span>
+                  <div className="flex items-center gap-1.5">
+                    <StatusBadge status={p.status} />
+                    {p.is_public && (
+                      <span title="Visível no seu perfil público" className="text-section-brain">
+                        ✦
+                      </span>
+                    )}
+                  </div>
+                  <span className="font-mono text-xs text-ink-muted">{p.progress}%</span>
                 </div>
                 <div className="mt-2.5 text-base font-semibold">{p.name}</div>
                 <div className="mt-0.5 text-sm text-ink-muted">{p.tagline}</div>

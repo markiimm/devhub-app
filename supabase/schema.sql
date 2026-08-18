@@ -76,9 +76,13 @@ create table if not exists public.projects (
   apis text[] not null default '{}',
   github text default '',
   dna jsonb not null default '{}'::jsonb,
+  is_public boolean not null default false,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+-- Para quem já rodou este script antes de "is_public" existir:
+alter table public.projects add column if not exists is_public boolean not null default false;
 
 create table if not exists public.project_tasks (
   id uuid primary key default gen_random_uuid(),
@@ -112,6 +116,10 @@ alter table public.project_updates enable row level security;
 drop policy if exists "dono gerencia seus projetos" on public.projects;
 create policy "dono gerencia seus projetos" on public.projects
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+drop policy if exists "projetos públicos são visíveis" on public.projects;
+create policy "projetos públicos são visíveis" on public.projects
+  for select using (is_public = true);
 
 drop policy if exists "dono gerencia tarefas dos seus projetos" on public.project_tasks;
 create policy "dono gerencia tarefas dos seus projetos" on public.project_tasks

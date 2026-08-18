@@ -14,11 +14,11 @@
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
   ::selection {
-    background: rgba(57, 135, 229, 0.35);
+    background: rgba(34, 211, 238, 0.28);
   }
   ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    width: 10px;
+    height: 10px;
   }
   ::-webkit-scrollbar-thumb {
     background: theme("colors.surface.3");
@@ -31,27 +31,47 @@
 
 @layer components {
   .card {
-    @apply rounded-md border border-border bg-surface-2 p-4;
+    @apply rounded-md border border-border bg-surface-2 p-5 transition-all duration-300;
+  }
+  .card-hover {
+    @apply hover:-translate-y-0.5 hover:border-border-strong hover:shadow-glow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:ring-offset-2 focus-visible:ring-offset-bg;
   }
   .btn {
-    @apply inline-flex items-center gap-2 rounded-sm border border-border bg-surface-2 px-3 py-1.5 text-sm font-medium text-ink-primary transition-colors hover:bg-surface-3 disabled:opacity-50 disabled:pointer-events-none;
+    @apply inline-flex items-center gap-2 rounded-sm border border-border bg-surface-2 px-3.5 py-2 text-sm font-medium text-ink-primary transition-all duration-200 hover:border-border-strong hover:bg-surface-3 active:scale-[0.97] disabled:opacity-50 disabled:pointer-events-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:ring-offset-2 focus-visible:ring-offset-bg;
   }
   .btn-primary {
-    @apply border-accent bg-accent text-white hover:bg-accent-hover;
+    @apply border-accent bg-accent text-[#04141a] shadow-glow hover:bg-accent-hover hover:border-accent-hover;
   }
   .btn-ghost {
-    @apply border-transparent bg-transparent text-ink-secondary hover:bg-surface-2 hover:text-ink-primary;
+    @apply border-transparent bg-transparent text-ink-secondary hover:bg-surface-3 hover:text-ink-primary;
   }
   .input {
-    @apply w-full rounded-sm border border-border bg-surface-3 px-3 py-2 text-sm text-ink-primary placeholder:text-ink-muted outline-none focus:border-border-strong;
+    @apply w-full rounded-sm border border-border bg-surface-3 px-3 py-2 text-sm text-ink-primary placeholder:text-ink-muted outline-none transition-colors focus:border-accent focus:ring-2 focus:ring-accent/20;
   }
   .label {
-    @apply mb-1.5 block text-xs font-medium text-ink-secondary;
+    @apply mb-1.5 block font-mono text-xs font-medium tracking-wide text-ink-secondary;
   }
   .tag {
     @apply inline-flex items-center rounded-sm border border-border bg-surface-3 px-2 py-0.5 text-xs font-medium text-ink-secondary;
   }
   .badge {
     @apply inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-xs font-medium;
+  }
+}
+
+@layer utilities {
+  .bg-grid {
+    background-image:
+      linear-gradient(to right, rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+    background-size: 32px 32px;
+    -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 40%, transparent 100%);
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 40%, transparent 100%);
+  }
+  .text-glow {
+    text-shadow: 0 0 24px var(--glow, rgba(34, 211, 238, 0.45));
+  }
+  .focus-ring {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:ring-offset-2 focus-visible:ring-offset-bg;
   }
 }

@@ -4,6 +4,8 @@ import { SetupScreen } from "@/components/SetupScreen";
 import { AuthShell } from "@/components/auth/AuthShell";
 import { SignupForm } from "@/components/auth/SignupForm";
 
+export const metadata = { title: "Criar conta" };
+
 export default function SignupPage() {
   if (!isSupabaseConfigured) return <SetupScreen />;
 
