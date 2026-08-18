@@ -37,7 +37,8 @@ const FEATURES = [
 const HIGHLIGHTS = [
   { icon: "zap", title: "Ctrl+K em tudo", description: "Paleta de comandos pra navegar sem tirar a mão do teclado." },
   { icon: "user", title: "Perfil público", description: "Um link tipo devhub/u/seu-handle pra mostrar seus projetos em destaque." },
-  { icon: "sparkles", title: "Feito pra devs", description: "Tema terminal, mono type, dados reais — sem enfeite corporativo." },
+  { icon: "github", title: "GitHub ao vivo", description: "Estrelas, forks e linguagem puxados direto do repo, sempre atualizados." },
+  { icon: "sparkles", title: "Dev Feed", description: "Veja o que a comunidade está construindo agora, em tempo real." },
 ];
 
 export function LandingPage() {
@@ -128,7 +129,7 @@ export function LandingPage() {
 
         {/* Highlights */}
         <section className="mx-auto max-w-5xl px-6 py-14 sm:px-10">
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {HIGHLIGHTS.map((h, i) => (
               <div key={h.title} className="animate-fade-up text-center" style={{ animationDelay: `${i * 80}ms` }}>
                 <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-md border border-accent/40 bg-accent/10 text-accent">

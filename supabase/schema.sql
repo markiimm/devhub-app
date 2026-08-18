@@ -18,8 +18,12 @@ create table if not exists public.profiles (
   location text default '',
   avatar_color text default '#3987e5',
   stacks text[] not null default '{}',
+  github_username text default '',
   created_at timestamptz not null default now()
 );
+
+-- Para quem já rodou este script antes de "github_username" existir:
+alter table public.profiles add column if not exists github_username text default '';
 
 alter table public.profiles enable row level security;
 
@@ -136,6 +140,11 @@ create policy "dono gerencia updates dos seus projetos" on public.project_update
   for all using (exists (select 1 from public.projects p where p.id = project_id and p.user_id = auth.uid()))
   with check (exists (select 1 from public.projects p where p.id = project_id and p.user_id = auth.uid()));
 
+-- Dev Feed: atualizações de projetos públicos ficam visíveis pra qualquer um.
+drop policy if exists "updates de projetos públicos são visíveis" on public.project_updates;
+create policy "updates de projetos públicos são visíveis" on public.project_updates
+  for select using (exists (select 1 from public.projects p where p.id = project_id and p.is_public = true));
+
 -- ---------------------------------------------------------------------------
 -- DEV BRAIN
 -- ---------------------------------------------------------------------------
@@ -166,12 +175,17 @@ create table if not exists public.snippets (
   tags text[] not null default '{}',
   description text default '',
   code text not null default '',
+  is_public boolean not null default false,
   created_at timestamptz not null default now()
 );
+alter table public.snippets add column if not exists is_public boolean not null default false;
 alter table public.snippets enable row level security;
 drop policy if exists "dono gerencia seus snippets" on public.snippets;
 create policy "dono gerencia seus snippets" on public.snippets
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+drop policy if exists "snippets públicos são visíveis" on public.snippets;
+create policy "snippets públicos são visíveis" on public.snippets
+  for select using (is_public = true);
 
 -- ---------------------------------------------------------------------------
 -- ERROR VAULT
@@ -184,12 +198,17 @@ create table if not exists public.errors (
   severity text not null default 'warning' check (severity in ('good','warning','serious','critical')),
   cause text default '',
   solution text default '',
+  is_public boolean not null default false,
   created_at timestamptz not null default now()
 );
+alter table public.errors add column if not exists is_public boolean not null default false;
 alter table public.errors enable row level security;
 drop policy if exists "dono gerencia seus erros" on public.errors;
 create policy "dono gerencia seus erros" on public.errors
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+drop policy if exists "erros públicos são visíveis" on public.errors;
+create policy "erros públicos são visíveis" on public.errors
+  for select using (is_public = true);
 
 -- ---------------------------------------------------------------------------
 -- IDEA VAULT
@@ -204,12 +223,17 @@ create table if not exists public.ideas (
   solution text default '',
   features text[] not null default '{}',
   tech text[] not null default '{}',
+  is_public boolean not null default false,
   created_at timestamptz not null default now()
 );
+alter table public.ideas add column if not exists is_public boolean not null default false;
 alter table public.ideas enable row level security;
 drop policy if exists "dono gerencia suas ideias" on public.ideas;
 create policy "dono gerencia suas ideias" on public.ideas
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+drop policy if exists "ideias públicas são visíveis" on public.ideas;
+create policy "ideias públicas são visíveis" on public.ideas
+  for select using (is_public = true);
 
 -- ---------------------------------------------------------------------------
 -- TOOL VAULT
@@ -229,6 +253,58 @@ create policy "dono gerencia suas ferramentas" on public.tools
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
 -- ---------------------------------------------------------------------------
+-- FOLLOWS — seguir outros devs
+-- ---------------------------------------------------------------------------
+create table if not exists public.follows (
+  follower_id uuid not null references auth.users(id) on delete cascade,
+  following_id uuid not null references auth.users(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  primary key (follower_id, following_id),
+  constraint follows_not_self check (follower_id <> following_id)
+);
+alter table public.follows enable row level security;
+
+drop policy if exists "follows são públicos para leitura" on public.follows;
+create policy "follows são públicos para leitura" on public.follows
+  for select using (true);
+
+drop policy if exists "usuário gerencia os próprios follows" on public.follows;
+create policy "usuário gerencia os próprios follows" on public.follows
+  for all using (auth.uid() = follower_id) with check (auth.uid() = follower_id);
+
+-- ---------------------------------------------------------------------------
+-- REACTIONS — reações rápidas nos updates do Dev Feed
+-- ---------------------------------------------------------------------------
+create table if not exists public.reactions (
+  id uuid primary key default gen_random_uuid(),
+  update_id uuid not null references public.project_updates(id) on delete cascade,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  emoji text not null default '🔥',
+  created_at timestamptz not null default now(),
+  unique (update_id, user_id)
+);
+alter table public.reactions enable row level security;
+
+drop policy if exists "reações são públicas para leitura" on public.reactions;
+create policy "reações são públicas para leitura" on public.reactions
+  for select using (true);
+
+drop policy if exists "usuário reage a updates públicos" on public.reactions;
+create policy "usuário reage a updates públicos" on public.reactions
+  for insert with check (
+    auth.uid() = user_id
+    and exists (
+      select 1 from public.project_updates u
+      join public.projects p on p.id = u.project_id
+      where u.id = update_id and p.is_public = true
+    )
+  );
+
+drop policy if exists "usuário remove a própria reação" on public.reactions;
+create policy "usuário remove a própria reação" on public.reactions
+  for delete using (auth.uid() = user_id);
+
+-- ---------------------------------------------------------------------------
 -- índices úteis
 -- ---------------------------------------------------------------------------
 create index if not exists idx_projects_user on public.projects(user_id);
@@ -240,6 +316,8 @@ create index if not exists idx_tools_user on public.tools(user_id);
 create index if not exists idx_tasks_project on public.project_tasks(project_id);
 create index if not exists idx_problems_project on public.project_problems(project_id);
 create index if not exists idx_updates_project on public.project_updates(project_id);
+create index if not exists idx_follows_following on public.follows(following_id);
+create index if not exists idx_reactions_update on public.reactions(update_id);
 
 -- ============================================================================
 -- Pronto! Depois de rodar este script:

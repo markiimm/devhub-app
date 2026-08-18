@@ -8,8 +8,9 @@ import { Icon } from "@/components/ui/Icon";
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Comunidade" };
 
-export default async function ExplorePage() {
+export default async function ExplorePage({ searchParams }: { searchParams: { tech?: string } }) {
   const supabase = createClient();
+  const activeTech = searchParams.tech;
 
   const { data: publicProjects } = await supabase
     .from("projects")
@@ -17,7 +18,13 @@ export default async function ExplorePage() {
     .eq("is_public", true)
     .order("updated_at", { ascending: false });
 
-  const userIds = Array.from(new Set((publicProjects ?? []).map((p) => p.user_id)));
+  const allTech = Array.from(new Set((publicProjects ?? []).flatMap((p) => p.tech ?? []))).sort();
+
+  const filteredProjects = activeTech
+    ? (publicProjects ?? []).filter((p) => p.tech?.includes(activeTech))
+    : publicProjects ?? [];
+
+  const userIds = Array.from(new Set(filteredProjects.map((p) => p.user_id)));
 
   const { data: profiles } =
     userIds.length > 0 ? await supabase.from("profiles").select("*").in("id", userIds) : { data: [] };
@@ -25,14 +32,14 @@ export default async function ExplorePage() {
   const profilesById = new Map((profiles ?? []).map((p) => [p.id, p]));
 
   // preserva a ordem de "mais recentemente ativo" vinda de publicProjects
-  const entries: { profile: NonNullable<ReturnType<typeof profilesById.get>>; projects: NonNullable<typeof publicProjects> }[] = [];
+  const entries: { profile: NonNullable<ReturnType<typeof profilesById.get>>; projects: typeof filteredProjects }[] = [];
   const seen = new Set<string>();
-  for (const p of publicProjects ?? []) {
+  for (const p of filteredProjects) {
     if (seen.has(p.user_id)) continue;
     const profile = profilesById.get(p.user_id);
     if (!profile) continue;
     seen.add(p.user_id);
-    entries.push({ profile, projects: (publicProjects ?? []).filter((pp) => pp.user_id === p.user_id) });
+    entries.push({ profile, projects: filteredProjects.filter((pp) => pp.user_id === p.user_id) });
   }
 
   return (
@@ -47,6 +54,30 @@ export default async function ExplorePage() {
             Devs que estão construindo em público, com projetos e perfis compartilhados.
           </p>
         </div>
+
+        {allTech.length > 0 && (
+          <div className="mt-6 flex flex-wrap justify-center gap-1.5">
+            <Link
+              href="/explore"
+              className={`rounded-full border px-2.5 py-1 font-mono text-xs transition-colors ${
+                !activeTech ? "border-accent/40 bg-accent/10 text-accent" : "border-border text-ink-muted hover:text-ink-primary"
+              }`}
+            >
+              todos
+            </Link>
+            {allTech.map((t) => (
+              <Link
+                key={t}
+                href={`/explore?tech=${encodeURIComponent(t)}`}
+                className={`rounded-full border px-2.5 py-1 font-mono text-xs transition-colors ${
+                  activeTech === t ? "border-accent/40 bg-accent/10 text-accent" : "border-border text-ink-muted hover:text-ink-primary"
+                }`}
+              >
+                {t}
+              </Link>
+            ))}
+          </div>
+        )}
 
         {entries.length > 0 ? (
           <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -94,12 +125,22 @@ export default async function ExplorePage() {
           <div className="mt-10">
             <EmptyState
               icon="globe"
-              title="Ninguém publicou um projeto ainda"
-              description="Marque um dos seus projetos como destaque público no Project Lab e seja o primeiro a aparecer aqui."
+              title={activeTech ? `Ninguém usando ${activeTech} ainda` : "Ninguém publicou um projeto ainda"}
+              description={
+                activeTech
+                  ? "Tente outra tecnologia ou volte pra ver todo mundo."
+                  : "Marque um dos seus projetos como destaque público no Project Lab e seja o primeiro a aparecer aqui."
+              }
               action={
-                <Link href="/signup" className="btn btn-primary font-mono">
-                  $ criar conta →
-                </Link>
+                activeTech ? (
+                  <Link href="/explore" className="btn btn-primary font-mono">
+                    ver todos →
+                  </Link>
+                ) : (
+                  <Link href="/signup" className="btn btn-primary font-mono">
+                    $ criar conta →
+                  </Link>
+                )
               }
             />
           </div>

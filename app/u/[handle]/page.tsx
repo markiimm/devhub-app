@@ -8,6 +8,7 @@ import { ProgressBar } from "@/components/ui/ProgressBar";
 import { Icon } from "@/components/ui/Icon";
 import { GithubBadgeInline } from "@/components/projects/GithubBadgeInline";
 import { fetchGithubRepo, type GithubRepoInfo } from "@/lib/github";
+import { toggleFollow } from "@/lib/actions/follow";
 
 export const dynamic = "force-dynamic";
 
@@ -46,8 +47,37 @@ export default async function PublicProfilePage({ params }: { params: { handle: 
   );
   const totalStars = githubInfos.reduce((sum, info) => sum + (info?.stars ?? 0), 0);
   const uniqueTech = new Set((projects ?? []).flatMap((p) => p.tech ?? [])).size;
+  const publicCount = projects?.length ?? 0;
+
+  const ACHIEVEMENTS = [
+    { emoji: "🚀", label: "Builder", earned: publicCount >= 1 },
+    { emoji: "🔥", label: "Prolífico", earned: publicCount >= 3 },
+    { emoji: "⭐", label: "Popular", earned: totalStars >= 10 },
+    { emoji: "🌟", label: "Estrela em ascensão", earned: totalStars >= 100 },
+    { emoji: "🧰", label: "Poliglota", earned: uniqueTech >= 5 },
+  ].filter((a) => a.earned);
 
   const avatarColor = profile.avatar_color || "#22d3ee";
+
+  const {
+    data: { user: viewer },
+  } = await supabase.auth.getUser();
+
+  const [{ count: followerCount }, { count: followingCount }] = await Promise.all([
+    supabase.from("follows").select("*", { count: "exact", head: true }).eq("following_id", profile.id),
+    supabase.from("follows").select("*", { count: "exact", head: true }).eq("follower_id", profile.id),
+  ]);
+
+  let isFollowing = false;
+  if (viewer && viewer.id !== profile.id) {
+    const { data: existing } = await supabase
+      .from("follows")
+      .select("follower_id")
+      .eq("follower_id", viewer.id)
+      .eq("following_id", profile.id)
+      .maybeSingle();
+    isFollowing = !!existing;
+  }
 
   return (
     <div className="relative min-h-screen overflow-hidden">
@@ -56,27 +86,70 @@ export default async function PublicProfilePage({ params }: { params: { handle: 
 
       <main className="relative z-10 mx-auto max-w-3xl px-6 pb-24 pt-8 sm:px-10">
         <div className="card animate-fade-up">
-          <div className="flex items-start gap-5">
-            <div
-              className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full border-2 font-mono text-lg font-bold"
-              style={{ borderColor: avatarColor, color: avatarColor, background: `${avatarColor}1a` }}
-            >
-              {profile.name.slice(0, 2).toUpperCase()}
-            </div>
-            <div className="min-w-0">
-              <h1 className="text-xl font-semibold tracking-tight">{profile.name}</h1>
-              <p className="font-mono text-sm text-ink-muted">@{profile.handle}</p>
-              {profile.title && <p className="mt-1.5 text-sm text-ink-secondary">{profile.title}</p>}
-              {profile.location && (
-                <p className="mt-1 flex items-center gap-1.5 text-xs text-ink-muted">
-                  <Icon name="box" size={12} />
-                  {profile.location}
+          <div className="flex items-start justify-between gap-5">
+            <div className="flex items-start gap-5">
+              <div
+                className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full border-2 font-mono text-lg font-bold"
+                style={{ borderColor: avatarColor, color: avatarColor, background: `${avatarColor}1a` }}
+              >
+                {profile.name.slice(0, 2).toUpperCase()}
+              </div>
+              <div className="min-w-0">
+                <h1 className="text-xl font-semibold tracking-tight">{profile.name}</h1>
+                <p className="font-mono text-sm text-ink-muted">@{profile.handle}</p>
+                {profile.title && <p className="mt-1.5 text-sm text-ink-secondary">{profile.title}</p>}
+                {profile.location && (
+                  <p className="mt-1 flex items-center gap-1.5 text-xs text-ink-muted">
+                    <Icon name="box" size={12} />
+                    {profile.location}
+                  </p>
+                )}
+                <p className="mt-2 font-mono text-xs text-ink-muted">
+                  <span className="text-ink-primary">{followerCount ?? 0}</span> seguidores
+                  <span className="mx-1.5">·</span>
+                  <span className="text-ink-primary">{followingCount ?? 0}</span> seguindo
                 </p>
-              )}
+              </div>
             </div>
+
+            {viewer && viewer.id !== profile.id ? (
+              <form action={toggleFollow}>
+                <input type="hidden" name="target_id" value={profile.id} />
+                <input type="hidden" name="handle" value={profile.handle} />
+                <input type="hidden" name="following" value={String(isFollowing)} />
+                <button className={isFollowing ? "btn btn-ghost shrink-0 font-mono" : "btn btn-primary shrink-0 font-mono"}>
+                  {isFollowing ? "seguindo ✓" : "+ seguir"}
+                </button>
+              </form>
+            ) : (
+              !viewer && (
+                <Link href="/login" className="btn btn-ghost shrink-0 font-mono">
+                  entrar pra seguir
+                </Link>
+              )
+            )}
           </div>
 
-          {profile.bio && <p className="mt-5 border-t border-border pt-5 text-sm text-ink-secondary">{profile.bio}</p>}
+          {ACHIEVEMENTS.length > 0 && (
+            <div className="mt-5 flex flex-wrap gap-1.5 border-t border-border pt-5">
+              {ACHIEVEMENTS.map((a) => (
+                <span
+                  key={a.label}
+                  title={a.label}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface-3 px-2.5 py-1 text-xs font-medium text-ink-secondary"
+                >
+                  <span>{a.emoji}</span>
+                  {a.label}
+                </span>
+              ))}
+            </div>
+          )}
+
+          {profile.bio && (
+            <p className={`text-sm text-ink-secondary ${ACHIEVEMENTS.length > 0 ? "mt-4" : "mt-5 border-t border-border pt-5"}`}>
+              {profile.bio}
+            </p>
+          )}
 
           {profile.stacks?.length > 0 && (
             <div className="mt-4 flex flex-wrap gap-1.5">

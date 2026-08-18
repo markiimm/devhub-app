@@ -8,6 +8,7 @@ import { ProgressBar } from "@/components/ui/ProgressBar";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Icon } from "@/components/ui/Icon";
 import { GithubCard } from "@/components/projects/GithubCard";
+import { ReadmeGenerator } from "@/components/projects/ReadmeGenerator";
 import {
   updateProjectMeta,
   deleteProject,
@@ -89,6 +90,17 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
             <GithubCard repo={project.github} />
           </Suspense>
         )}
+
+        <ReadmeGenerator
+          project={{
+            name: project.name,
+            tagline: project.tagline,
+            status: project.status,
+            tech: project.tech ?? [],
+            github: project.github,
+            dna: project.dna,
+          }}
+        />
 
         <details className="card card-hover animate-fade-up" style={{ animationDelay: "60ms" }}>
           <summary className="cursor-pointer font-mono text-sm font-medium text-section-projects">$ editar projeto</summary>

@@ -50,3 +50,39 @@ export async function fetchGithubRepo(input: string): Promise<GithubRepoInfo | n
     return null;
   }
 }
+
+/**
+ * Busca os pushes públicos recentes de um usuário no GitHub (API de eventos —
+ * cobre só os últimos ~90 dias e é paginada em lotes de 30). Retorna uma lista
+ * de timestamps (um por commit) pra alimentar o heatmap de atividade.
+ * Sem token, sujeito ao mesmo rate limit de 60 req/hora — por isso buscamos no
+ * máximo 3 páginas. Falha em silêncio: é sempre um complemento, nunca obrigatório.
+ */
+export async function fetchGithubActivity(username: string): Promise<string[]> {
+  const clean = username.trim().replace(/^@/, "");
+  if (!clean) return [];
+
+  const timestamps: string[] = [];
+  try {
+    for (let page = 1; page <= 3; page++) {
+      const res = await fetch(`https://api.github.com/users/${clean}/events/public?per_page=100&page=${page}`, {
+        headers: { Accept: "application/vnd.github+json" },
+        next: { revalidate: 1800 },
+      });
+      if (!res.ok) break;
+      const events = await res.json();
+      if (!Array.isArray(events) || events.length === 0) break;
+
+      for (const event of events) {
+        if (event.type === "PushEvent") {
+          const commitCount = Array.isArray(event.payload?.commits) ? event.payload.commits.length : 1;
+          for (let i = 0; i < commitCount; i++) timestamps.push(event.created_at);
+        }
+      }
+      if (events.length < 100) break;
+    }
+  } catch {
+    return timestamps;
+  }
+  return timestamps;
+}

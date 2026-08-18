@@ -37,6 +37,8 @@ export function CommandPalette() {
       { id: "projects", label: "Project Lab", hint: "seus projetos", icon: "folder", color: "text-section-projects", action: (r) => r.push("/projects") },
       { id: "settings", label: "Configurações", hint: "perfil público", icon: "user", color: "text-ink-secondary", action: (r) => r.push("/settings") },
       { id: "explore", label: "Comunidade", hint: "devs em destaque", icon: "globe", color: "text-accent", action: (r) => r.push("/explore") },
+      { id: "feed", label: "Dev Feed", hint: "build in public de todo mundo", icon: "zap", color: "text-section-projects", action: (r) => r.push("/feed") },
+      { id: "library", label: "Biblioteca", hint: "snippets, erros e ideias públicas", icon: "box", color: "text-section-vaults", action: (r) => r.push("/library") },
       {
         id: "logout",
         label: "Sair",

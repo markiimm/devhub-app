@@ -93,6 +93,32 @@ export default async function SettingsPage() {
               />
             </div>
           </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="label">Usuário do GitHub</label>
+              <input
+                name="github_username"
+                defaultValue={profile?.github_username ?? ""}
+                className="input font-mono"
+                placeholder="seu-usuario"
+              />
+              <p className="mt-1.5 text-xs text-ink-muted">
+                Opcional — puxa seus commits públicos reais pro heatmap do Dashboard.
+              </p>
+            </div>
+            <div>
+              <label className="label">Cor do perfil</label>
+              <div className="flex items-center gap-2.5">
+                <input
+                  type="color"
+                  name="avatar_color"
+                  defaultValue={profile?.avatar_color || "#22d3ee"}
+                  className="h-9 w-9 shrink-0 cursor-pointer rounded-sm border border-border bg-surface-3 p-1"
+                />
+                <span className="font-mono text-xs text-ink-muted">cor do seu avatar no perfil público</span>
+              </div>
+            </div>
+          </div>
           <div className="flex justify-end">
             <button className="btn btn-primary">Salvar perfil</button>
           </div>

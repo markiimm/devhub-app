@@ -24,6 +24,7 @@ export interface Database {
           location: string | null;
           avatar_color: string;
           stacks: string[];
+          github_username: string | null;
           created_at: string;
         };
         Insert: Partial<Database["public"]["Tables"]["profiles"]["Row"]> & { id: string };
@@ -90,6 +91,7 @@ export interface Database {
           tags: string[];
           description: string | null;
           code: string;
+          is_public: boolean;
           created_at: string;
         };
         Insert: Partial<Database["public"]["Tables"]["snippets"]["Row"]> & { user_id: string; title: string; code: string };
@@ -104,6 +106,7 @@ export interface Database {
           severity: Severity;
           cause: string | null;
           solution: string | null;
+          is_public: boolean;
           created_at: string;
         };
         Insert: Partial<Database["public"]["Tables"]["errors"]["Row"]> & { user_id: string; title: string };
@@ -120,10 +123,21 @@ export interface Database {
           solution: string | null;
           features: string[];
           tech: string[];
+          is_public: boolean;
           created_at: string;
         };
         Insert: Partial<Database["public"]["Tables"]["ideas"]["Row"]> & { user_id: string; title: string };
         Update: Partial<Database["public"]["Tables"]["ideas"]["Row"]>;
+      };
+      follows: {
+        Row: { follower_id: string; following_id: string; created_at: string };
+        Insert: { follower_id: string; following_id: string };
+        Update: Partial<Database["public"]["Tables"]["follows"]["Row"]>;
+      };
+      reactions: {
+        Row: { id: string; update_id: string; user_id: string; emoji: string; created_at: string };
+        Insert: Partial<Database["public"]["Tables"]["reactions"]["Row"]> & { update_id: string; user_id: string };
+        Update: Partial<Database["public"]["Tables"]["reactions"]["Row"]>;
       };
       tools: {
         Row: {

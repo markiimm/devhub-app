@@ -31,6 +31,8 @@ export async function updateProfile(formData: FormData) {
       bio: String(formData.get("bio") ?? ""),
       location: String(formData.get("location") ?? ""),
       stacks: parseList(formData.get("stacks")),
+      github_username: String(formData.get("github_username") ?? "").trim().replace(/^@/, ""),
+      avatar_color: String(formData.get("avatar_color") ?? "#22d3ee"),
     })
     .eq("id", user.id);
 
@@ -42,4 +44,5 @@ export async function updateProfile(formData: FormData) {
 
   revalidatePath("/settings");
   revalidatePath("/dashboard");
+  if (handle) revalidatePath(`/u/${handle}`);
 }

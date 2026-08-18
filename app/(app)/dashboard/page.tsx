@@ -7,6 +7,7 @@ import { StatusBadge } from "@/components/ui/Badge";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Icon } from "@/components/ui/Icon";
+import { fetchGithubActivity } from "@/lib/github";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Dashboard" };
@@ -32,6 +33,7 @@ export default async function DashboardPage() {
     { data: errorDates },
     { data: ideaDates },
     { data: noteDates },
+    { data: profile },
   ] = await Promise.all([
     supabase.from("projects").select("*", { count: "exact", head: true }).eq("user_id", user!.id),
     supabase.from("snippets").select("*", { count: "exact", head: true }).eq("user_id", user!.id),
@@ -48,7 +50,10 @@ export default async function DashboardPage() {
     supabase.from("errors").select("created_at").eq("user_id", user!.id).gte("created_at", sinceIso),
     supabase.from("ideas").select("created_at").eq("user_id", user!.id).gte("created_at", sinceIso),
     supabase.from("notes").select("created_at").eq("user_id", user!.id).gte("created_at", sinceIso),
+    supabase.from("profiles").select("github_username").eq("id", user!.id).single(),
   ]);
+
+  const githubTimestamps = profile?.github_username ? await fetchGithubActivity(profile.github_username) : [];
 
   const activityTimestamps = [
     ...(projectDates ?? []),
@@ -56,7 +61,9 @@ export default async function DashboardPage() {
     ...(errorDates ?? []),
     ...(ideaDates ?? []),
     ...(noteDates ?? []),
-  ].map((r) => r.created_at);
+  ]
+    .map((r) => r.created_at)
+    .concat(githubTimestamps);
 
   const firstName = (user?.user_metadata?.name as string | undefined)?.split(" ")[0];
 
@@ -75,7 +82,15 @@ export default async function DashboardPage() {
         </div>
 
         <div className="mt-8 card animate-fade-up" style={{ animationDelay: "300ms" }}>
-          <h2 className="mb-4 text-sm font-semibold">Atividade</h2>
+          <div className="mb-4 flex items-center gap-2">
+            <h2 className="text-sm font-semibold">Atividade</h2>
+            {profile?.github_username && (
+              <span className="flex items-center gap-1 font-mono text-[11px] text-ink-muted">
+                <Icon name="github" size={11} />
+                inclui commits de @{profile.github_username}
+              </span>
+            )}
+          </div>
           <ActivityHeatmap timestamps={activityTimestamps} />
         </div>
 

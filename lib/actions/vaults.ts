@@ -29,6 +29,7 @@ export async function createSnippet(formData: FormData) {
     description: String(formData.get("description") ?? ""),
     code: String(formData.get("code") ?? ""),
     tags: parseList(formData.get("tags")),
+    is_public: formData.get("is_public") === "on",
   });
   revalidatePath("/vaults");
 }
@@ -36,6 +37,14 @@ export async function createSnippet(formData: FormData) {
 export async function deleteSnippet(formData: FormData) {
   const { supabase, user } = await requireUser();
   await supabase.from("snippets").delete().eq("id", String(formData.get("id"))).eq("user_id", user.id);
+  revalidatePath("/vaults");
+}
+
+export async function toggleSnippetPublic(formData: FormData) {
+  const { supabase, user } = await requireUser();
+  const id = String(formData.get("id"));
+  const isPublic = formData.get("is_public") === "true";
+  await supabase.from("snippets").update({ is_public: !isPublic }).eq("id", id).eq("user_id", user.id);
   revalidatePath("/vaults");
 }
 
@@ -49,6 +58,7 @@ export async function createErrorEntry(formData: FormData) {
     severity: String(formData.get("severity") ?? "warning"),
     cause: String(formData.get("cause") ?? ""),
     solution: String(formData.get("solution") ?? ""),
+    is_public: formData.get("is_public") === "on",
   });
   revalidatePath("/vaults");
 }
@@ -56,6 +66,14 @@ export async function createErrorEntry(formData: FormData) {
 export async function deleteErrorEntry(formData: FormData) {
   const { supabase, user } = await requireUser();
   await supabase.from("errors").delete().eq("id", String(formData.get("id"))).eq("user_id", user.id);
+  revalidatePath("/vaults");
+}
+
+export async function toggleErrorPublic(formData: FormData) {
+  const { supabase, user } = await requireUser();
+  const id = String(formData.get("id"));
+  const isPublic = formData.get("is_public") === "true";
+  await supabase.from("errors").update({ is_public: !isPublic }).eq("id", id).eq("user_id", user.id);
   revalidatePath("/vaults");
 }
 
@@ -70,6 +88,7 @@ export async function createIdea(formData: FormData) {
     problem: String(formData.get("problem") ?? ""),
     solution: String(formData.get("solution") ?? ""),
     tech: parseList(formData.get("tech")),
+    is_public: formData.get("is_public") === "on",
   });
   revalidatePath("/vaults");
 }
@@ -77,6 +96,14 @@ export async function createIdea(formData: FormData) {
 export async function deleteIdea(formData: FormData) {
   const { supabase, user } = await requireUser();
   await supabase.from("ideas").delete().eq("id", String(formData.get("id"))).eq("user_id", user.id);
+  revalidatePath("/vaults");
+}
+
+export async function toggleIdeaPublic(formData: FormData) {
+  const { supabase, user } = await requireUser();
+  const id = String(formData.get("id"));
+  const isPublic = formData.get("is_public") === "true";
+  await supabase.from("ideas").update({ is_public: !isPublic }).eq("id", id).eq("user_id", user.id);
   revalidatePath("/vaults");
 }
 

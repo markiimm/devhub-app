@@ -8,10 +8,13 @@ import { CopyButton } from "@/components/vaults/CopyButton";
 import {
   createSnippet,
   deleteSnippet,
+  toggleSnippetPublic,
   createErrorEntry,
   deleteErrorEntry,
+  toggleErrorPublic,
   createIdea,
   deleteIdea,
+  toggleIdeaPublic,
   createTool,
   deleteTool,
 } from "@/lib/actions/vaults";
@@ -39,6 +42,29 @@ function DeleteBtn({ action, id }: { action: (fd: FormData) => void; id: string 
       <input type="hidden" name="id" value={id} />
       <button className="text-ink-muted hover:text-status-critical" title="Excluir">
         <Icon name="trash" size={14} />
+      </button>
+    </form>
+  );
+}
+
+function PublicToggleBtn({
+  action,
+  id,
+  isPublic,
+}: {
+  action: (fd: FormData) => void;
+  id: string;
+  isPublic: boolean;
+}) {
+  return (
+    <form action={action}>
+      <input type="hidden" name="id" value={id} />
+      <input type="hidden" name="is_public" value={String(isPublic)} />
+      <button
+        className={isPublic ? "text-section-vaults" : "text-ink-muted hover:text-section-vaults"}
+        title={isPublic ? "Público — visível na Biblioteca" : "Privado — clique para publicar"}
+      >
+        <Icon name="globe" size={14} />
       </button>
     </form>
   );
@@ -104,6 +130,10 @@ async function CodeVaultTab({ userId }: { userId: string }) {
           <input name="description" placeholder="Descrição curta" className="input" />
           <textarea name="code" required rows={6} placeholder="Cole seu código aqui" className="input font-mono text-xs" />
           <input name="tags" placeholder="Tags (separadas por vírgula)" className="input" />
+          <label className="flex items-center gap-2.5 text-sm text-ink-secondary">
+            <input type="checkbox" name="is_public" className="h-4 w-4 accent-section-vaults" />
+            Publicar na Biblioteca pública
+          </label>
           <button className="btn btn-primary">Salvar snippet</button>
         </form>
       </details>
@@ -120,6 +150,7 @@ async function CodeVaultTab({ userId }: { userId: string }) {
                 <div className="font-medium">{s.title}</div>
                 <div className="flex items-center gap-2">
                   <Badge variant="accent">{s.lang}</Badge>
+                  <PublicToggleBtn action={toggleSnippetPublic} id={s.id} isPublic={s.is_public} />
                   <DeleteBtn action={deleteSnippet} id={s.id} />
                 </div>
               </div>
@@ -170,6 +201,10 @@ async function ErrorVaultTab({ userId }: { userId: string }) {
           </div>
           <textarea name="cause" rows={2} placeholder="Causa" className="input" />
           <textarea name="solution" rows={2} placeholder="Solução" className="input" />
+          <label className="flex items-center gap-2.5 text-sm text-ink-secondary">
+            <input type="checkbox" name="is_public" className="h-4 w-4 accent-section-vaults" />
+            Publicar na Biblioteca pública
+          </label>
           <button className="btn btn-primary">Salvar erro</button>
         </form>
       </details>
@@ -188,6 +223,7 @@ async function ErrorVaultTab({ userId }: { userId: string }) {
                 </Badge>
                 <div className="flex items-center gap-2">
                   {e.tech && <span className="tag">{e.tech}</span>}
+                  <PublicToggleBtn action={toggleErrorPublic} id={e.id} isPublic={e.is_public} />
                   <DeleteBtn action={deleteErrorEntry} id={e.id} />
                 </div>
               </div>
@@ -239,6 +275,10 @@ async function IdeaVaultTab({ userId }: { userId: string }) {
           <textarea name="problem" rows={2} placeholder="Problema que resolve" className="input" />
           <textarea name="solution" rows={2} placeholder="Solução proposta" className="input" />
           <input name="tech" placeholder="Tecnologias sugeridas (separadas por vírgula)" className="input" />
+          <label className="flex items-center gap-2.5 text-sm text-ink-secondary">
+            <input type="checkbox" name="is_public" className="h-4 w-4 accent-section-vaults" />
+            Publicar na Biblioteca pública
+          </label>
           <button className="btn btn-primary">Salvar ideia</button>
         </form>
       </details>
@@ -253,7 +293,10 @@ async function IdeaVaultTab({ userId }: { userId: string }) {
             >
               <div className="flex items-center justify-between">
                 <Badge variant="violet">{idea.category}</Badge>
-                <DeleteBtn action={deleteIdea} id={idea.id} />
+                <div className="flex items-center gap-2">
+                  <PublicToggleBtn action={toggleIdeaPublic} id={idea.id} isPublic={idea.is_public} />
+                  <DeleteBtn action={deleteIdea} id={idea.id} />
+                </div>
               </div>
               <div className="mt-2 font-medium">{idea.title}</div>
               {idea.description && <p className="mt-1 text-sm text-ink-muted">{idea.description}</p>}
